@@ -1,1 +1,109 @@
+ </style>
+</head>
+<body>
 
+    <div id="game-container">
+        <div id="score">00000</div>
+        <div id="dino"></div>
+        <div id="cactus"></div>
+        <div id="game-over">GAME OVER<br><span style="font-size: 14px;">Pressione Espaço para Reiniciar</span></div>
+    </div>
+
+    <script>
+        const dino = document.getElementById("dino");
+        const cactus = document.getElementById("cactus");
+        const scoreElement = document.getElementById("score");
+        const gameOverText = document.getElementById("game-over");
+
+        let isJumping = false;
+        let gravity = 0.6;
+        let position = 0;
+        let speed = 8;
+        let score = 0;
+        let isGameOver = false;
+        let cactusPosition = 600;
+
+        // Captura o clique ou teclado para pular
+        document.addEventListener("keydown", function(event) {
+            if (event.code === "Space" || event.code === "ArrowUp") {
+                if (isGameOver) {
+                    resetGame();
+                } else if (!isJumping) {
+                    jump();
+                }
+            }
+        });
+
+        // Função de Pulo do Dinossauro
+        function jump() {
+            isJumping = true;
+            let upInterval = setInterval(() => {
+                if (position >= 120) {
+                    clearInterval(upInterval);
+
+                    // Função de queda
+                    let downInterval = setInterval(() => {
+                        if (position <= 0) {
+                            clearInterval(downInterval);
+                            isJumping = false;
+                            position = 0;
+                        } else {
+                            position -= 5;
+                            dino.style.bottom = position + "px";
+                        }
+                    }, 12);
+                } else {
+                    position += 6;
+                    dino.style.bottom = position + "px";
+                }
+            }, 12);
+        }
+
+        // Loop principal do jogo
+        function gameLoop() {
+            if (isGameOver) return;
+
+            // Movimentação do cacto
+            cactusPosition -= speed;
+            if (cactusPosition < -20) {
+                cactusPosition = 600;
+                score += 10;
+                // Aumenta a velocidade gradualmente conforme a pontuação sobe
+                if (speed < 20) speed += 0.5; 
+            }
+            cactus.style.left = cactusPosition + "px";
+
+            // Atualização dos pontos na tela
+            scoreElement.textContent = String(score).padStart(5, '0');
+
+            // Detecção de Colisão
+            // O dino está entre x=50 e x=90. O cacto atinge essa faixa quando sua posição está entre 50 e 90.
+            // Se o cacto está nessa faixa e a altura do dino é menor que a altura do cacto (40px), ocorre a colisão.
+            if (cactusPosition > 50 && cactusPosition < 90 && position < 40) {
+                endGame();
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Finaliza a partida
+        function endGame() {
+            isGameOver = true;
+            gameOverText.style.display = "block";
+        }
+
+        // Reinicia os parâmetros básicos do jogo
+        function resetGame() {
+            isGameOver = false;
+            score = 0;
+            speed = 8;
+            cactusPosition = 600;
+            position = 0;
+            dino.style.bottom = "0px";
+            gameOverText.style.display = "none";
+            gameLoop();
+        }
+
+        // Inicializa o jogo pela primeira vez
+        gameLoop();
+    </script>
